@@ -1,0 +1,4 @@
+{
+  "kind": "OpenCostAllocationQuery",
+  "spec": { "aggregate": ["namespace"], "step": "one day" }
+}

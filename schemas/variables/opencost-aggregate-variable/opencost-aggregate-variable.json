@@ -1,0 +1,7 @@
+{
+  "kind": "OpenCostAggregateVariable",
+  "spec": {
+    "datasource": { "kind": "OpenCostDatasource" },
+    "aggregate": "label:team"
+  }
+}
