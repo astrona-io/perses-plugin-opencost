@@ -1,0 +1,16 @@
+{
+  "kind": "OpenCostDatasource",
+  "spec": {
+    "currency": "USD",
+    "proxy": {
+      "kind": "HTTPProxy",
+      "spec": {
+        "url": "http://opencost.opencost.svc.cluster.local:9003",
+        "timeout": "30s",
+        "allowedEndpoints": [
+          { "endpointPattern": "/allocation/compute", "method": "GET" }
+        ]
+      }
+    }
+  }
+}

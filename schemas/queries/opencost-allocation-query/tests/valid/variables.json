@@ -1,0 +1,14 @@
+{
+  "kind": "OpenCostAllocationQuery",
+  "spec": {
+    "aggregate": ["${dims:csv}"],
+    "idle": "include",
+    "idleOnly": true,
+    "fractionOfTotal": true,
+    "step": "1d",
+    "timeZone": "Europe/Copenhagen",
+    "sharedLabels": ["team:platform"],
+    "shareSplit": "even",
+    "filter": "namespace:${ns:doublequote}"
+  }
+}

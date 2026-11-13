@@ -1,0 +1,8 @@
+{
+  "kind": "OpenCostAggregateVariable",
+  "spec": {
+    "datasource": { "kind": "OpenCostDatasource", "name": "opencost" },
+    "aggregate": "controller",
+    "filter": "label[team]:${team:doublequote}"
+  }
+}

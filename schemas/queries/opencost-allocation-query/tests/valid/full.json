@@ -1,0 +1,13 @@
+{
+  "kind": "OpenCostAllocationQuery",
+  "spec": {
+    "datasource": { "kind": "OpenCostDatasource", "name": "opencost" },
+    "aggregate": ["label:team", "namespace", "controller"],
+    "costType": "totalCost",
+    "idle": "exclude",
+    "sharedNamespaces": ["kube-system"],
+    "shareSplit": "weighted",
+    "accumulate": true,
+    "timeZone": "UTC"
+  }
+}

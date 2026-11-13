@@ -1,0 +1,4 @@
+{
+  "kind": "OpenCostAggregateVariable",
+  "spec": { "aggregate": "namespace", "accumulate": true }
+}
