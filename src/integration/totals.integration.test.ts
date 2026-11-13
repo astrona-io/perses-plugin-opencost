@@ -17,8 +17,10 @@
  * Compares the plugin's numbers with the OpenCost API it reads. Runs only when OPENCOST_URL points at an
  * OpenCost API (the dev stack exposes one: see dev/README.md), e.g.
  *
- *   OPENCOST_URL=http://127.0.0.1:18190 npm test -- integration
+ *   OPENCOST_URL=http://127.0.0.1:18184 npm test -- integration
  */
+
+import { get } from "node:http";
 
 import type { TimeSeriesQueryContext } from "@perses-dev/plugin-system";
 
@@ -35,10 +37,29 @@ const end = new Date(Math.floor(Date.now() / HOUR_MS) * HOUR_MS);
 const start = new Date(end.getTime() - 6 * HOUR_MS);
 const window = `${start.toISOString().replace(".000Z", "Z")},${end.toISOString().replace(".000Z", "Z")}`;
 
+// Jest's node environment has no global fetch, so the test talks HTTP itself.
+function httpFetch(input: RequestInfo | URL): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    get(String(input), (res) => {
+      let text = "";
+      res.setEncoding("utf8");
+      res.on("data", (chunk: string) => (text += chunk));
+      res.on("end", () =>
+        resolve({
+          ok: (res.statusCode ?? 0) < 400,
+          status: res.statusCode ?? 0,
+          json: async () => JSON.parse(text),
+          text: async () => text,
+        } as Response),
+      );
+    }).on("error", reject);
+  });
+}
+
 function ctx(): TimeSeriesQueryContext {
   const client = OpenCostDatasource.createClient(
     { directUrl: OPENCOST_URL },
-    {},
+    { fetch: httpFetch },
   );
   return {
     timeRange: { start, end },
@@ -55,7 +76,9 @@ async function raw(
   query: Record<string, string>,
 ): Promise<Record<string, number>> {
   const search = new URLSearchParams({ window, ...query });
-  const response = await fetch(`${OPENCOST_URL}/allocation/compute?${search}`);
+  const response = await httpFetch(
+    `${OPENCOST_URL}/allocation/compute?${search}`,
+  );
   const body = (await response.json()) as OpenCostAllocationResponse;
   const totals: Record<string, number> = {};
   for (const set of body.data ?? []) {
