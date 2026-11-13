@@ -1,0 +1,27 @@
+# prometheus-community/prometheus: just the server, plus the scrape job OpenCost needs.
+alertmanager:
+  enabled: false
+prometheus-pushgateway:
+  enabled: false
+prometheus-node-exporter:
+  enabled: false
+kube-state-metrics:
+  enabled: false
+server:
+  persistentVolume:
+    enabled: false
+  retention: 7d
+  global:
+    scrape_interval: 1m
+extraScrapeConfigs: |
+  - job_name: opencost
+    honor_labels: true
+    scrape_interval: 1m
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    scheme: http
+    dns_sd_configs:
+      - names:
+          - opencost.opencost
+        type: A
+        port: 9003

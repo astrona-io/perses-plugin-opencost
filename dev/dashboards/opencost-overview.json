@@ -1,0 +1,406 @@
+{
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "opencost-overview",
+    "project": "demo"
+  },
+  "spec": {
+    "display": {
+      "name": "OpenCost overview"
+    },
+    "duration": "6h",
+    "refreshInterval": "0s",
+    "variables": [
+      {
+        "kind": "ListVariable",
+        "spec": {
+          "name": "team",
+          "display": {
+            "name": "Team"
+          },
+          "allowMultiple": true,
+          "allowAllValue": true,
+          "defaultValue": "$__all",
+          "plugin": {
+            "kind": "OpenCostAggregateVariable",
+            "spec": {
+              "aggregate": "label:team"
+            }
+          }
+        }
+      }
+    ],
+    "panels": {
+      "total": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "name": "Total cost",
+            "description": "Everything in the cluster over the time range: workloads plus idle capacity."
+          },
+          "plugin": {
+            "kind": "StatChart",
+            "spec": {
+              "calculation": "last",
+              "format": {
+                "unit": "usd",
+                "decimalPlaces": 2
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "OpenCostAllocationQuery",
+                  "spec": {
+                    "aggregate": [
+                      "cluster"
+                    ],
+                    "idle": "share",
+                    "accumulate": true
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "allocated": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "name": "Allocated to teams",
+            "description": "Cost of workloads in the selected teams."
+          },
+          "plugin": {
+            "kind": "StatChart",
+            "spec": {
+              "calculation": "last",
+              "format": {
+                "unit": "usd",
+                "decimalPlaces": 2
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "OpenCostAllocationQuery",
+                  "spec": {
+                    "aggregate": [
+                      "cluster"
+                    ],
+                    "accumulate": true,
+                    "filter": "label[team]:${team:doublequote}"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "idle": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "name": "Idle cost share",
+            "description": "Share of the cluster's cost that no workload requested."
+          },
+          "plugin": {
+            "kind": "StatChart",
+            "spec": {
+              "calculation": "last",
+              "format": {
+                "unit": "percent-decimal",
+                "decimalPlaces": 1
+              },
+              "thresholds": {
+                "steps": [
+                  {
+                    "value": 0.3,
+                    "color": "#f2a33a"
+                  },
+                  {
+                    "value": 0.6,
+                    "color": "#e5484d"
+                  }
+                ]
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "OpenCostAllocationQuery",
+                  "spec": {
+                    "aggregate": [
+                      "cluster"
+                    ],
+                    "idle": "include",
+                    "idleOnly": true,
+                    "fractionOfTotal": true,
+                    "accumulate": true
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "efficiency": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "name": "Cost efficiency",
+            "description": "Usage over requests, weighted by CPU and RAM cost."
+          },
+          "plugin": {
+            "kind": "StatChart",
+            "spec": {
+              "calculation": "last",
+              "format": {
+                "unit": "percent-decimal",
+                "decimalPlaces": 1
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "OpenCostAllocationQuery",
+                  "spec": {
+                    "aggregate": [
+                      "cluster"
+                    ],
+                    "costType": "efficiency",
+                    "accumulate": true,
+                    "filter": "label[team]:${team:doublequote}"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "byTeamTime": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "name": "Cost per team",
+            "description": "Hourly cost per team; shared namespaces (kube-system, opencost, prometheus-system) are split across teams by their cost."
+          },
+          "plugin": {
+            "kind": "TimeSeriesChart",
+            "spec": {
+              "legend": {
+                "position": "bottom",
+                "mode": "table",
+                "values": [
+                  "sum"
+                ]
+              },
+              "yAxis": {
+                "format": {
+                  "unit": "usd",
+                  "decimalPlaces": 3
+                }
+              },
+              "visual": {
+                "display": "line",
+                "areaOpacity": 0.4,
+                "stack": "all",
+                "lineWidth": 1.25
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "OpenCostAllocationQuery",
+                  "spec": {
+                    "aggregate": [
+                      "label:team"
+                    ],
+                    "filter": "label[team]:${team:doublequote}",
+                    "sharedNamespaces": [
+                      "kube-system",
+                      "opencost",
+                      "prometheus-system",
+                      "local-path-storage"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "byNamespace": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "name": "Cost by namespace",
+            "description": "Accumulated over the time range."
+          },
+          "plugin": {
+            "kind": "BarChart",
+            "spec": {
+              "calculation": "last",
+              "format": {
+                "unit": "usd",
+                "decimalPlaces": 3
+              },
+              "sort": "desc",
+              "mode": "value"
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "OpenCostAllocationQuery",
+                  "spec": {
+                    "aggregate": [
+                      "namespace"
+                    ],
+                    "accumulate": true,
+                    "filter": "label[team]:${team:doublequote}"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "flow": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "name": "Cost flow",
+            "description": "Team to namespace to controller (needs the Sankey plugin)."
+          },
+          "plugin": {
+            "kind": "SankeyChart",
+            "spec": {
+              "calculation": "last",
+              "levels": [
+                "team",
+                "namespace",
+                "controller"
+              ],
+              "format": {
+                "unit": "usd",
+                "decimalPlaces": 3
+              },
+              "nodeAlign": "justify",
+              "colorBy": "source",
+              "linkOpacity": 0.4
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "OpenCostAllocationQuery",
+                  "spec": {
+                    "aggregate": [
+                      "label:team",
+                      "namespace",
+                      "controller"
+                    ],
+                    "accumulate": true,
+                    "filter": "label[team]:${team:doublequote}"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "layouts": [
+      {
+        "kind": "Grid",
+        "spec": {
+          "items": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 6,
+              "height": 5,
+              "content": {
+                "$ref": "#/spec/panels/total"
+              }
+            },
+            {
+              "x": 6,
+              "y": 0,
+              "width": 6,
+              "height": 5,
+              "content": {
+                "$ref": "#/spec/panels/allocated"
+              }
+            },
+            {
+              "x": 12,
+              "y": 0,
+              "width": 6,
+              "height": 5,
+              "content": {
+                "$ref": "#/spec/panels/idle"
+              }
+            },
+            {
+              "x": 18,
+              "y": 0,
+              "width": 6,
+              "height": 5,
+              "content": {
+                "$ref": "#/spec/panels/efficiency"
+              }
+            },
+            {
+              "x": 0,
+              "y": 5,
+              "width": 14,
+              "height": 10,
+              "content": {
+                "$ref": "#/spec/panels/byTeamTime"
+              }
+            },
+            {
+              "x": 14,
+              "y": 5,
+              "width": 10,
+              "height": 10,
+              "content": {
+                "$ref": "#/spec/panels/byNamespace"
+              }
+            },
+            {
+              "x": 0,
+              "y": 15,
+              "width": 24,
+              "height": 11,
+              "content": {
+                "$ref": "#/spec/panels/flow"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

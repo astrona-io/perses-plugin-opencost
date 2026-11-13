@@ -1,0 +1,19 @@
+# Perses with this plugin, the Sankey plugin (and the treemap plugin when its archive is present),
+# reading the OpenCost API that the kind cluster publishes on the host. Start it with ./up.sh.
+name: perses-plugin-opencost
+
+services:
+  perses:
+    image: docker.io/persesdev/perses:v0.55.1
+    command: ["--config", "/etc/perses/config.yaml"]
+    ports:
+      - "127.0.0.1:${PERSES_PORT:-18084}:8080"
+    extra_hosts:
+      - "host.containers.internal:host-gateway"
+    volumes:
+      - ./perses.yaml:/etc/perses/config.yaml:ro,z
+      - ./provisioning:/etc/perses/provisioning:ro,z
+      - ./dashboards:/etc/perses/dashboards:ro,z
+      # OpenCost-<version>.tar.gz from `percli plugin build`, plus the Sankey (and treemap) archives
+      # that fetch-plugins.sh copies out of their images.
+      - ./archive:/etc/perses/plugins-archive-opencost:ro,z

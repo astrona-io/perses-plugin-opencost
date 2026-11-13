@@ -1,0 +1,10 @@
+# kind cluster for the dev stack: OpenCost's API is published on the host through a NodePort.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: perses-plugin-opencost
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30903 # OpenCost API (k8s/opencost-nodeport.yaml)
+        hostPort: 18184
+        listenAddress: 127.0.0.1

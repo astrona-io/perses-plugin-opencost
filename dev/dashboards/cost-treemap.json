@@ -1,0 +1,99 @@
+{
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "cost-treemap",
+    "project": "demo"
+  },
+  "spec": {
+    "display": {
+      "name": "Cost treemap"
+    },
+    "duration": "6h",
+    "refreshInterval": "0s",
+    "variables": [
+      {
+        "kind": "ListVariable",
+        "spec": {
+          "name": "team",
+          "display": {
+            "name": "Team"
+          },
+          "allowMultiple": true,
+          "allowAllValue": true,
+          "defaultValue": "$__all",
+          "plugin": {
+            "kind": "OpenCostAggregateVariable",
+            "spec": {
+              "aggregate": "label:team"
+            }
+          }
+        }
+      }
+    ],
+    "panels": {
+      "treemap": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "name": "Cost by team, namespace and controller",
+            "description": "Click a box to open it (needs the treemap plugin)."
+          },
+          "plugin": {
+            "kind": "TreemapChart",
+            "spec": {
+              "calculation": "last",
+              "levels": [
+                "team",
+                "namespace",
+                "controller"
+              ],
+              "format": {
+                "unit": "usd",
+                "decimalPlaces": 3
+              },
+              "colorBy": "topLevel",
+              "showBreadcrumb": true
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "OpenCostAllocationQuery",
+                  "spec": {
+                    "aggregate": [
+                      "label:team",
+                      "namespace",
+                      "controller"
+                    ],
+                    "accumulate": true,
+                    "filter": "label[team]:${team:doublequote}"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "layouts": [
+      {
+        "kind": "Grid",
+        "spec": {
+          "items": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 24,
+              "height": 18,
+              "content": {
+                "$ref": "#/spec/panels/treemap"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

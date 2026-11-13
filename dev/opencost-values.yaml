@@ -1,0 +1,31 @@
+# opencost/opencost: API only (no UI), reading the in-cluster Prometheus.
+opencost:
+  exporter:
+    defaultClusterId: dev-cluster
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+  prometheus:
+    internal:
+      enabled: true
+      namespaceName: prometheus-system
+      serviceName: prometheus-server
+      port: 80
+  ui:
+    enabled: false
+  # Fixed on-prem prices (the OpenCost defaults): node, idle and asset costs need a valid price list.
+  customPricing:
+    enabled: true
+    provider: custom
+    costModel:
+      description: Dev cluster prices (OpenCost defaults).
+      CPU: "0.031611"
+      spotCPU: "0.006655"
+      RAM: "0.004237"
+      spotRAM: "0.000892"
+      GPU: "0.95"
+      storage: "0.00005479452"
+      zoneNetworkEgress: "0.01"
+      regionNetworkEgress: "0.01"
+      internetNetworkEgress: "0.12"

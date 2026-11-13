@@ -1,0 +1,18 @@
+# OpenCost through the Perses proxy. Only GET /allocation/compute is let through.
+kind: GlobalDatasource
+metadata:
+  name: opencost
+spec:
+  default: true
+  plugin:
+    kind: OpenCostDatasource
+    spec:
+      currency: USD
+      proxy:
+        kind: HTTPProxy
+        spec:
+          url: http://host.containers.internal:18184
+          timeout: 30s
+          allowedEndpoints:
+            - endpointPattern: /allocation/compute
+              method: GET
