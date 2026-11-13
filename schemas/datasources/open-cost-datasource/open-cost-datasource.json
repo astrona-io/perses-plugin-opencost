@@ -1,0 +1,6 @@
+{
+  "kind": "OpenCostDatasource",
+  "spec": {
+    "directUrl": "http://localhost:9090"
+  }
+}
