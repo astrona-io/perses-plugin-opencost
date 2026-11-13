@@ -1,0 +1,299 @@
+# Generated demo workloads: four teams (label team) over six namespaces. Pause containers hold
+# requests; two busybox deployments burn a little CPU so efficiency is not zero everywhere.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: payments-api
+  labels:
+    team: payments
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: payments-api
+  labels:
+    team: payments
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+        team: payments
+    spec:
+      containers:
+        - name: api
+          image: registry.k8s.io/pause:3.10
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: payments-api
+  labels:
+    team: payments
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+        team: payments
+    spec:
+      containers:
+        - name: worker
+          image: docker.io/library/busybox:1.37
+          command: ["sh", "-c", "while true; do i=0; while [ $i -lt 20000 ]; do i=$((i+1)); done; sleep 1; done"]
+          resources:
+            requests:
+              cpu: 300m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: payments-db
+  labels:
+    team: payments
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: payments-db
+  labels:
+    team: payments
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        team: payments
+    spec:
+      containers:
+        - name: postgres
+          image: registry.k8s.io/pause:3.10
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: data
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: search
+  labels:
+    team: search
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: indexer
+  namespace: search
+  labels:
+    team: search
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: indexer
+  template:
+    metadata:
+      labels:
+        app: indexer
+        team: search
+    spec:
+      containers:
+        - name: indexer
+          image: docker.io/library/busybox:1.37
+          command: ["sh", "-c", "while true; do i=0; while [ $i -lt 20000 ]; do i=$((i+1)); done; sleep 1; done"]
+          resources:
+            requests:
+              cpu: 400m
+              memory: 768Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: query
+  namespace: search
+  labels:
+    team: search
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: query
+  template:
+    metadata:
+      labels:
+        app: query
+        team: search
+    spec:
+      containers:
+        - name: query
+          image: registry.k8s.io/pause:3.10
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: storefront
+  labels:
+    team: storefront
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: storefront
+  labels:
+    team: storefront
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+        team: storefront
+    spec:
+      containers:
+        - name: web
+          image: registry.k8s.io/pause:3.10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout
+  namespace: storefront
+  labels:
+    team: storefront
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: checkout
+  template:
+    metadata:
+      labels:
+        app: checkout
+        team: storefront
+    spec:
+      containers:
+        - name: checkout
+          image: registry.k8s.io/pause:3.10
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress
+  labels:
+    team: platform
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller
+  namespace: ingress
+  labels:
+    team: platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: controller
+  template:
+    metadata:
+      labels:
+        app: controller
+        team: platform
+    spec:
+      containers:
+        - name: controller
+          image: registry.k8s.io/pause:3.10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: telemetry
+  labels:
+    team: platform
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collector
+  namespace: telemetry
+  labels:
+    team: platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: collector
+  template:
+    metadata:
+      labels:
+        app: collector
+        team: platform
+    spec:
+      containers:
+        - name: collector
+          image: registry.k8s.io/pause:3.10
+          resources:
+            requests:
+              cpu: 200m
+              memory: 384Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data
+  namespace: payments-db
+  labels:
+    team: payments
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi

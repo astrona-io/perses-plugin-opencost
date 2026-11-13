@@ -1,0 +1,155 @@
+{
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "cost-flow",
+    "project": "demo"
+  },
+  "spec": {
+    "display": {
+      "name": "Cost flow"
+    },
+    "duration": "6h",
+    "refreshInterval": "0s",
+    "variables": [
+      {
+        "kind": "ListVariable",
+        "spec": {
+          "name": "team",
+          "display": {
+            "name": "Team"
+          },
+          "allowMultiple": true,
+          "allowAllValue": true,
+          "defaultValue": "$__all",
+          "plugin": {
+            "kind": "OpenCostAggregateVariable",
+            "spec": {
+              "aggregate": "label:team"
+            }
+          }
+        }
+      }
+    ],
+    "panels": {
+      "flow": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "name": "Where the money goes",
+            "description": "Team to namespace to controller, accumulated over the time range."
+          },
+          "plugin": {
+            "kind": "SankeyChart",
+            "spec": {
+              "calculation": "last",
+              "levels": [
+                "team",
+                "namespace",
+                "controller"
+              ],
+              "format": {
+                "unit": "usd",
+                "decimalPlaces": 3
+              },
+              "orientation": "horizontal",
+              "nodeAlign": "justify",
+              "colorBy": "source",
+              "linkOpacity": 0.4
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "OpenCostAllocationQuery",
+                  "spec": {
+                    "aggregate": [
+                      "label:team",
+                      "namespace",
+                      "controller"
+                    ],
+                    "accumulate": true,
+                    "filter": "label[team]:${team:doublequote}"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "resources": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "name": "CPU cost: team to namespace",
+            "description": "Only the CPU part of each team's cost."
+          },
+          "plugin": {
+            "kind": "SankeyChart",
+            "spec": {
+              "calculation": "last",
+              "levels": [
+                "team",
+                "namespace"
+              ],
+              "format": {
+                "unit": "usd",
+                "decimalPlaces": 3
+              },
+              "nodeAlign": "justify",
+              "colorBy": "source",
+              "linkOpacity": 0.4
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "OpenCostAllocationQuery",
+                  "spec": {
+                    "aggregate": [
+                      "label:team",
+                      "namespace"
+                    ],
+                    "costType": "cpuCost",
+                    "accumulate": true,
+                    "filter": "label[team]:${team:doublequote}"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "layouts": [
+      {
+        "kind": "Grid",
+        "spec": {
+          "items": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 24,
+              "height": 14,
+              "content": {
+                "$ref": "#/spec/panels/flow"
+              }
+            },
+            {
+              "x": 0,
+              "y": 14,
+              "width": 24,
+              "height": 10,
+              "content": {
+                "$ref": "#/spec/panels/resources"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

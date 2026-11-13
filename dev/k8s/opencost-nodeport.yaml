@@ -1,0 +1,15 @@
+# Publishes the OpenCost API on the kind node (host port 18184, see kind.yaml).
+apiVersion: v1
+kind: Service
+metadata:
+  name: opencost-api
+  namespace: opencost
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: opencost
+  ports:
+    - name: http
+      port: 9003
+      targetPort: 9003
+      nodePort: 30903
