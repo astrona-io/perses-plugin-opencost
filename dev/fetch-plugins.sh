@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copies the Sankey (and, once released, treemap) plugin archives out of their images into archive/.
+# Copies the Sankey and treemap plugin archives out of their images into archive/.
 # The images hold nothing but the archive at their root.
 set -eu
 cd "$(dirname "$0")"

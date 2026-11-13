@@ -1,7 +1,7 @@
 # Dev stack
 
-A local cluster with real OpenCost data, and Perses with this plugin, the Sankey plugin and (once it
-is released) the treemap plugin.
+A local cluster with real OpenCost data, and Perses with this plugin, the Sankey plugin and the
+treemap plugin.
 
 | What         | Where                                                            |
 | ------------ | ---------------------------------------------------------------- |
@@ -38,12 +38,12 @@ fill in over the first hours and the daily chart has one bar per day the stack h
 
 ## Dashboards
 
-| File                     | Shows                                                                                                                                                      |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `opencost-overview.json` | Total, allocated, idle share and efficiency; cost per team over time; cost per namespace; cost flow                                                        |
-| `cost-flow.json`         | Sankey: team, namespace, controller                                                                                                                        |
-| `daily-cost-trend.json`  | Daily cost per team in Europe/Copenhagen, and the idle share per day                                                                                       |
-| `cost-treemap.json`      | Treemap: team, namespace, controller. Needs the treemap plugin (`TreemapChart`); until it is in `archive/`, Perses logs that it cannot load this dashboard |
+| File                     | Shows                                                                                               |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| `opencost-overview.json` | Total, allocated, idle share and efficiency; cost per team over time; cost per namespace; cost flow |
+| `cost-flow.json`         | Sankey: team, namespace, controller                                                                 |
+| `daily-cost-trend.json`  | Daily cost per team in Europe/Copenhagen, and the idle share per day                                |
+| `cost-treemap.json`      | Treemap: team, namespace, controller. Uses the treemap plugin (`TreemapChart`)                      |
 
 ## Integration test
 

@@ -130,5 +130,3 @@ spec:
 - **Currency conversion**: the plugin shows the currency OpenCost bills in; it does not convert.
 - **Multi-cluster**: works through `aggregate: [cluster, ...]` when one OpenCost sees several
   clusters; one datasource per OpenCost otherwise.
-- **Treemap demo**: the treemap dashboard needs the treemap panel plugin, which was not released when
-  0.1.0 was built.
