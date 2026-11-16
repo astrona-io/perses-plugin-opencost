@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-16
+
+### Changed
+
+- Panels that request the same allocation URL share one request, and a response is reused for 30
+  seconds. Each `/allocation/compute` call costs OpenCost seconds of CPU, and panels often differ
+  only in what they read from the response (cost type, idle handling): a 12-panel dashboard sent 7
+  distinct requests instead of 12. A panel's abort no longer cancels the request for the others.
+
 ## [0.1.0] - 2026-11-13
 
 ### Added
@@ -30,5 +39,6 @@ All notable changes to this project are documented here. The format follows
   the GitHub release and the plugin image as `ghcr.io/astrona-io/perses-plugin-opencost:v<version>`
   (linux/amd64 and linux/arm64), with build provenance attestations.
 
-[Unreleased]: https://github.com/astrona-io/perses-plugin-opencost/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/astrona-io/perses-plugin-opencost/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/astrona-io/perses-plugin-opencost/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/astrona-io/perses-plugin-opencost/releases/tag/v0.1.0

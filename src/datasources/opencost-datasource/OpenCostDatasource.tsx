@@ -14,9 +14,12 @@
 import type { DatasourcePlugin } from "@perses-dev/plugin-system";
 
 import type { OpenCostClient } from "../../model/client";
-import { fetchAllocation } from "../../model/client";
+import { sharedAllocationFetcher } from "../../model/client";
 import type { OpenCostDatasourceSpec } from "./types";
 import { OpenCostDatasourceEditor } from "./OpenCostDatasourceEditor";
+
+// One per page: every panel's client shares it.
+const sharedFetchAllocation = sharedAllocationFetcher();
 
 const createClient: DatasourcePlugin<
   OpenCostDatasourceSpec,
@@ -35,7 +38,7 @@ const createClient: DatasourcePlugin<
   return {
     options: { datasourceUrl, currency },
     allocation: (params, abortSignal) =>
-      fetchAllocation(
+      sharedFetchAllocation(
         params,
         { datasourceUrl, fetch: customFetch },
         abortSignal,

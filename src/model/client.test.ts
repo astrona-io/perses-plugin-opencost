@@ -11,7 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { allocationSearchParams, buildUrl, fetchAllocation } from "./client";
+import {
+  allocationSearchParams,
+  buildUrl,
+  fetchAllocation,
+  sharedAllocationFetcher,
+} from "./client";
 
 describe("buildUrl", () => {
   it("joins absolute and proxy URLs without double slashes", () => {
@@ -96,5 +101,88 @@ describe("fetchAllocation", () => {
     await expect(
       fetchAllocation(params, { datasourceUrl: "http://oc:9003", fetch }),
     ).rejects.toThrow("Bad Gateway");
+  });
+});
+
+describe("sharedAllocationFetcher", () => {
+  const params = {
+    window: "a,b",
+    aggregate: "cluster",
+    accumulate: true,
+    includeIdle: true,
+    shareIdle: false,
+  };
+  const options = { datasourceUrl: "http://oc:9003" };
+
+  function deferred() {
+    let resolve!: (v: unknown) => void;
+    let reject!: (e: unknown) => void;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  }
+
+  it("shares a request in flight and reuses the response until the TTL ends", async () => {
+    let clock = 0;
+    const fetcher = jest.fn().mockResolvedValue({ code: 200, data: [] });
+    const shared = sharedAllocationFetcher(1000, fetcher, () => clock);
+
+    const [a, b] = await Promise.all([
+      shared(params, options),
+      shared(params, options),
+    ]);
+    expect(a).toBe(b);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    clock = 999;
+    await shared(params, options);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    clock = 1000;
+    await shared(params, options);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("fetches different parameters and datasources separately", async () => {
+    const fetcher = jest.fn().mockResolvedValue({ code: 200, data: [] });
+    const shared = sharedAllocationFetcher(1000, fetcher, () => 0);
+    await shared(params, options);
+    await shared({ ...params, aggregate: "namespace" }, options);
+    await shared(params, { datasourceUrl: "http://other:9003" });
+    expect(fetcher).toHaveBeenCalledTimes(3);
+  });
+
+  it("does not keep failures", async () => {
+    const fetcher = jest
+      .fn()
+      .mockRejectedValueOnce(new Error("Bad Gateway"))
+      .mockResolvedValue({ code: 200, data: [] });
+    const shared = sharedAllocationFetcher(1000, fetcher, () => 0);
+    await expect(shared(params, options)).rejects.toThrow("Bad Gateway");
+    await expect(shared(params, options)).resolves.toEqual({
+      code: 200,
+      data: [],
+    });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("lets one caller abort without failing the others", async () => {
+    const pending = deferred();
+    const fetcher = jest.fn().mockReturnValue(pending.promise);
+    const shared = sharedAllocationFetcher(1000, fetcher, () => 0);
+
+    const controller = new AbortController();
+    const aborted = shared(params, options, controller.signal);
+    const kept = shared(params, options);
+    controller.abort();
+    await expect(aborted).rejects.toBeDefined();
+
+    pending.resolve({ code: 200, data: [] });
+    await expect(kept).resolves.toEqual({ code: 200, data: [] });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    // The shared request runs without the caller's signal.
+    expect(fetcher.mock.calls[0][2]).toBeUndefined();
   });
 });
